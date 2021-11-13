@@ -1,80 +1,66 @@
-apply plugin: 'com.android.application'
-def applicationName = "ComittoNxA"
-def versionMajor = 1
-def versionMinor = 65
-def versionPatch = 20
-def revision = "A"
-def versionPatch2 = 2
-def revision2 = "C"
+plugins {
+    id 'com.android.application'
+}
 
 android {
-    compileSdkVersion 30
-    buildToolsVersion '29.0.2'
+    def applicationName = "ComittoNxAC"
+    def versionMajor = 1
+    def versionMinor = 65
+    def versionPatch = 20
+    def revision = "A"
+    def versionPatch2 = 2
+    def revision2 = "C"
+    compileSdk 30
+
     defaultConfig {
         applicationId "jp.dip.muracoro.comittona"
-        minSdkVersion 9
-        targetSdkVersion 9  // 30にしたらページ選択のサムネイルが動かなかった
+        minSdk 29
+        targetSdk 30
+        versionCode 1
+        versionName "1.0"
         versionCode versionMajor * 1000000 + versionMinor * 10000 + versionPatch * 100 + versionPatch2
         versionName "${versionMajor}.${versionMinor}${revision}${versionPatch}${revision2}${versionPatch2}"
-        multiDexEnabled true    // メソッド数が65535を超えてもビルド可能にする
-        ndk {
-            abiFilters "armeabi-v7a", "x86"    // ARM 32bit と x86 32bit でC++をメイクする
+
+        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+        ndk{
+            //abiFilters 'x86', 'x86_64', 'arm64-v8a'
+            abiFilters 'x86', 'armeabi-v7a'
         }
     }
-    applicationVariants.all { variant ->
-        if (variant.buildType.name != "release") {
-            return
-        }
-        variant.outputs.all {
-            outputFileName = "${applicationName}_${versionName}.apk"
-        }
-    }
-    lintOptions {
-        checkReleaseBuilds false
-        // Or, if you prefer, you can continue to check for errors in release builds,
-        // but continue the build even when errors are found:
-        abortOnError false
-    }
+
     buildTypes {
         release {
-            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
-            debuggable false
-            jniDebuggable false
-            renderscriptDebuggable false
-            signingConfig signingConfigs.debug
-            minifyEnabled true
-            shrinkResources true
-        }
-        debug {
-            debuggable true
-            jniDebuggable true
-            renderscriptDebuggable true
-            signingConfig signingConfigs.debug
             minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
+    }
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
     }
     externalNativeBuild {
         ndkBuild {
+            // Android.mkのファイルパス
             path 'src/main/jni/Android.mk'
         }
     }
-    productFlavors {
-    }
-}
-
-repositories {
-    google()
-    jcenter()
-    mavenCentral()
 }
 
 dependencies {
-    implementation 'com.android.support:multidex:1.0.3'    // メソッド数が65535を超えてもビルド可能にする
+
+    implementation 'androidx.appcompat:appcompat:1.3.1'
+    implementation 'com.google.android.material:material:1.4.0'
+    testImplementation 'junit:junit:4.13.2'
+    androidTestImplementation 'androidx.test.ext:junit:1.1.3'
+    androidTestImplementation 'androidx.test.espresso:espresso-core:3.4.0'
+
+
+    //implementation 'com.android.support:multidex:1.0.3'    // メソッド数が65535を超えてもビルド可能にする
 
     // SDカード書き込み用 Android サポートライブラリ
     // 古いバージョンを採用することで、minSdkVersionを最小に抑える
-    implementation 'com.android.support:support-compat:24.2.1'
-    implementation 'com.android.support:appcompat-v7:24.2.1'
+    //implementation 'com.android.support:support-compat:24.2.1'
+    //implementation 'com.android.support:appcompat-v7:24.2.1'
     // SVGファイル(アイコン表示用)
     implementation 'com.caverock:androidsvg-aar:1.4'
     // PDF
@@ -84,7 +70,6 @@ dependencies {
     //implementation 'org.tukaani:xz:1.8'
     // 画像
     //implementation 'com.github.bumptech.glide:glide:3.6.1'
-
     // SMB2接続用ライブラリ
     //implementation 'eu.agno3.jcifs:jcifs-ng:2.1.5'    // AndroidにMD4がないので動かない
     // (MD4未実装対策のためbouncycastleをspongycastleに変更)
@@ -99,8 +84,9 @@ dependencies {
     implementation 'org.slf4j:slf4j-api:1.7.30'
     implementation 'javax.annotation:javax.annotation-api:1.3.2'
     implementation 'javax.servlet:javax.servlet-api:3.1.0'
-    
+
     implementation 'com.hierynomus:smbj:0.10.0'         // smbj SMB2ライブラリ
     implementation 'com.rapid7.client:dcerpc:0.10.0'    // smbj SMB2 RPCライブラリ
 
+    implementation 'com.squareup.okhttp3:okhttp:3.10.0'
 }

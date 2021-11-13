@@ -1,18 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
-
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="jp.dip.muracoro.comittona"
-    android:installLocation="preferExternal">
+    package="jp.dip.muracoro.comittona">
 
-    <!--     android:theme="@android:style/Theme.NoTitleBar.Fullscreen" -->
     <application
         android:icon="@drawable/icon"
+        android:allowBackup="true"
         android:label="@string/app_name"
-        android:largeHeap="true"
-        android:hardwareAccelerated="false"
-        android:requestLegacyExternalStorage="true">
-
-        <meta-data android:name="android.max_aspect" android:value="3.0" />
+        android:supportsRtl="true">
 
         <activity
             android:configChanges="keyboardHidden|orientation|keyboard|screenSize"
@@ -47,7 +41,7 @@
                 <data android:mimeType="image/jpeg" />
                 <data android:mimeType="image/jpg" />
                 <data android:mimeType="image/gif" />
-                </intent-filter>
+            </intent-filter>
         </activity>
         <activity
             android:configChanges="keyboardHidden|orientation|keyboard|screenSize"
@@ -62,7 +56,7 @@
                 <data android:mimeType="text/plain" />
                 <data android:mimeType="application/xhtml+xml" />
                 <data android:mimeType="application/html" />
-                </intent-filter>
+            </intent-filter>
             <intent-filter android:label="@string/app_name" >
                 <action android:name="android.intent.action.VIEW" />
                 <category android:name="android.intent.category.DEFAULT" />
@@ -169,4 +163,6 @@
     <uses-permission android:name="com.android.launcher.permission.INSTALL_SHORTCUT" />
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.RECORD_AUDIO" />
+    <uses-permission android:name="android.permission.MANAGE_EXTERNAL_STORAGE" />
+
 </manifest>
