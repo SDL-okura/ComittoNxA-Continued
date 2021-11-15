@@ -271,7 +271,7 @@ public class ImageManager extends InputStream implements Runnable {
 		try {
 			mHostType = CheckHosttype(mFilePath);
 			if (mHostType == HOSTTYPE_NONE) {
-				throw new IOException("Illegal Path.");
+				throw new IOException("Illegal Path.[ImageManager:LoadImageList]");
 			}
 
 			FileData fileData = new FileData();
@@ -279,7 +279,7 @@ public class ImageManager extends InputStream implements Runnable {
 			fileData.setType(mFilePath);
 			mFileType = fileData.getFileType();
 			if (mFileType == FileData.FILETYPE_NONE){
-				throw new IOException("Illegal Path.");
+				throw new IOException("Illegal Path.[ImageManager:LoadImageList]");
 			}
 			mExtType = fileData.getExtType();
 
@@ -432,7 +432,8 @@ public class ImageManager extends InputStream implements Runnable {
 				fileData.setType(fl.name);
 				short fileType = fileData.getFileType();
 				if (fileType == FileData.FILETYPE_NONE){
-					throw new IOException("Illegal Path.");
+					//Log.d("%s は読み込まれませんでした", fl.name);
+					break;
 				}
 				fl.type = fileData.getExtType();
 				if (fl.type != FileData.EXTTYPE_NONE) {
@@ -2521,41 +2522,16 @@ public class ImageManager extends InputStream implements Runnable {
 			size = mFiles.get(mDirIndex).getSize();
 
 			mDirIndex++;
-			if (!flag) {
-				// 通常のファイル
-				if (name.length() <= 4) {
-					continue;
-				}
-				if (mHidden == true && DEF.checkHiddenFile(name)) {
-					continue;
-				}
 
-				String ext = DEF.getFileExt(name);
-				short type = 0;
-				if (ext.equals(".jpg") || ext.equals(".jpeg")) {
-					type = 1;
-				}
-				else if (ext.equals(".png")) {
-					type = 2;
-				}
-				else if (ext.equals(".gif")) {
-					type = 6;
-				}
-				else if (ext.equals(".webp")) {
-					type = 7;
-				}
-				else if (ext.equals(".bmp")) {
-					type = 8;
-				}
-				else if ((ext.equals(".txt") || ext.equals(".xhtml") || ext.equals(".html")) && (mOpenMode == OPENMODE_LIST || mOpenMode == OPENMODE_TEXTVIEW)) {
-					type = 3;
-				}
-				/* || ext.equals(".bmp") || ext.equals(".gif") ) { */
-				if (type != 0) {
+			if (!flag) {
+				FileData fileData = new FileData();
+				fileData.setLoadFileAsTextFlag((mOpenMode == OPENMODE_LIST || mOpenMode == OPENMODE_TEXTVIEW));
+				fileData.setType(name);
+				if (fileData.getFileType() == FileData.FILETYPE_IMG || (fileData.getFileType() == FileData.FILETYPE_TXT) && (mOpenMode == OPENMODE_LIST || mOpenMode == OPENMODE_TEXTVIEW)) {
 					// Image Fileのみ採用
 					FileListItem imgfile = new FileListItem();
 					imgfile.name = name;
-					imgfile.type = type;
+					imgfile.type = fileData.getExtType();
 					imgfile.cmppos = 0;
 					imgfile.orgpos = mDirOrgPos;
 					imgfile.cmplen = 0;
