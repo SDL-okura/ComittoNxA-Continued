@@ -65,7 +65,7 @@ public class ExpandActivity extends ListActivity implements Handler.Callback, On
 	private static final int OPERATE_READHERE = 2;
 	private static final int OPERATE_SETTHUMBNAIL = 9;
 
-	private static final int FILETYPE_TXT = 3;
+	private static final int FILETYPE_TXT = FileData.FILETYPE_TXT;
 
 	private TitleView mTitleView;
 	private ListView mListView;

@@ -16,7 +16,7 @@ import android.os.Handler;
 import android.os.Message;
 
 public class ExpandThumbnailLoader extends ThumbnailLoader implements Runnable {
-	protected static final int FILETYPE_TXT = 3;
+	//protected static final int FILETYPE_TXT = FileData.FILETYPE_TXT;
 
 	private ImageManager mImageMgr = null;
 
