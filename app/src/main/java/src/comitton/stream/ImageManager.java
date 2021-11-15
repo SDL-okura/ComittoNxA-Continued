@@ -277,9 +277,6 @@ public class ImageManager extends InputStream implements Runnable {
 			else if (ext.equals(".rar") || ext.equals(".cbr")) {
 				mFileType = FILETYPE_RAR;
 			}
-			else if (ext.equals(".pdf")) {
-				mFileType = FILETYPE_PDF;
-			}
 			else {
 				throw new IOException("Illegal Path.");
 			}
@@ -288,19 +285,6 @@ public class ImageManager extends InputStream implements Runnable {
 				if (mFileType == FILETYPE_DIR) {
 //					dirAccessInit(mFilePath, mUser, mPass);
 					DirFileList(mFilePath, mUser, mPass);
-				}
-				else if (mFileType == FILETYPE_PDF) {
-					mPDFMgr = new PDFManager(this, mOpenMode == OPENMODE_THUMBNAIL || mOpenMode == OPENMODE_THUMBSORT);
-					mFileList = mPDFMgr.pdfFileList(mFilePath);
-					if (mFileList == null) {
-						// データなしの場合は0個の配列
-						mFileList = new FileListItem[0];
-					}
-					mMaxOrgLength = mPDFMgr.getMaxOrgLength();
-					int ret = CallPdfLibrary.pdfAlloc(mMaxOrgLength);
-					if (ret != 0) {
-						throw new IOException("Memory Alloc Error.");
-					}
 				}
 				else {
 					fileAccessInit(mFilePath);
@@ -2925,12 +2909,6 @@ public class ImageManager extends InputStream implements Runnable {
 					mRarStream = new RarInputStream(new BufferedInputStream(this, BIS_BUFFSIZE), page, mFileList[page]);
 					BitmapFactory.decodeStream(mRarStream, null, option);
 				}
-				else if (mFileType == FILETYPE_PDF) {
-					// ファイルキャッシュを作成するときはPDF展開不要
-					PdfCrypt crypt = mPDFMgr.getCrypt();
-					mPdfStream = new PdfInputStream(new BufferedInputStream(this, BIS_BUFFSIZE), page, mFileList[page], crypt, mMaxOrgLength);
-					BitmapFactory.decodeStream(mPdfStream, null, option);
-				}
 				else {
 					BitmapFactory.decodeStream(this, null, option);
 				}
@@ -3017,18 +2995,6 @@ public class ImageManager extends InputStream implements Runnable {
 				}
 				id = LoadBitmapFile(page, mRarStream, mFileList[page].orglen);
 			}
-			else if (mFileType == FILETYPE_PDF) {
-				// PDFのバイナリを読み込んだあと複合化する
-				if (mPdfStream == null || mPdfStream.getLoadPage() != page) {
-					PdfCrypt crypt = mPDFMgr.getCrypt();
-					mPdfStream = new PdfInputStream(new BufferedInputStream(this, BIS_BUFFSIZE), page, mFileList[page], crypt, mMaxOrgLength);
-				}
-				else {
-					mPdfStream.initSeek();
-				}
-				// そのまま読み込み
-				id = LoadBitmapFile(page, mPdfStream, mFileList[page].orglen);
-			}
 			else {
 				id = LoadBitmapFile(page, this, mFileList[page].orglen);
 			}
@@ -3093,12 +3059,6 @@ public class ImageManager extends InputStream implements Runnable {
 				// ファイルキャッシュを作成するときはRAR展開不要
 				mRarStream = new RarInputStream(new BufferedInputStream(this, BIS_BUFFSIZE), page, mFileList[page]);
 				mRarStream.read(result, 0, result.length);
-			}
-			else if (mFileType == FILETYPE_PDF) {
-				// ファイルキャッシュを作成するときはPDF展開不要
-				PdfCrypt crypt = mPDFMgr.getCrypt();
-				mPdfStream = new PdfInputStream(new BufferedInputStream(this, BIS_BUFFSIZE), page, mFileList[page], crypt, mMaxOrgLength);
-				mPdfStream.read(result, 0, result.length);
 			}
 			else {
 				this.read(result, 0, result.length);
@@ -3194,18 +3154,6 @@ public class ImageManager extends InputStream implements Runnable {
 				}
 				bm = BitmapFactory.decodeStream(mRarStream);
 			}
-			else if (mFileType == FILETYPE_PDF) {
-				// PDFのバイナリを読み込んだあと複合化する
-				if (mPdfStream == null || mPdfStream.getLoadPage() != page) {
-					PdfCrypt crypt = mPDFMgr.getCrypt();
-					mPdfStream = new PdfInputStream(new BufferedInputStream(this, BIS_BUFFSIZE), page, mFileList[page], crypt, mMaxOrgLength);
-				}
-				else {
-					mPdfStream.initSeek();
-				}
-				// そのまま読み込み
-				bm = BitmapFactory.decodeStream(mPdfStream);
-			}
 			else {
 				bm = BitmapFactory.decodeStream(this);
 			}
@@ -3267,24 +3215,6 @@ public class ImageManager extends InputStream implements Runnable {
 				}
 				bm = BitmapFactory.decodeStream(mRarStream, null, option);
 			}
-			else if (mFileType == FILETYPE_PDF) {
-				// PDFのバイナリを読み込んだあと複合化する
-				if (mPdfStream == null || mPdfStream.getLoadPage() != page) {
-					PdfCrypt crypt = mPDFMgr.getCrypt();
-					mPdfStream = new PdfInputStream(new BufferedInputStream(this, BIS_BUFFSIZE), page, mFileList[page], crypt, mMaxOrgLength);
-				}
-				else {
-					mPdfStream.initSeek();
-				}
-				if (mFileList[page].type == IMAGETYPE_JPEG) {
-					// jpegならそのまま読み込み
-					bm = BitmapFactory.decodeStream(mPdfStream, null, option);
-				}
-				else {
-					// ccitt/flate
-					bm = LoadBitmapFileForPDF(page, mPdfStream, mFileList[page].orglen, option.inSampleSize);
-				}
-			}
 			else {
 				bm = BitmapFactory.decodeStream(this, null, option);
 			}
@@ -3330,13 +3260,8 @@ public class ImageManager extends InputStream implements Runnable {
 		}
 		ImageData id = null;
 		int param[];
-		if (mFileList[page].type == IMAGETYPE_CCITT || mFileList[page].type == IMAGETYPE_FLATE) {
-			param = mFileList[page].params;
-		}
-		else {
-			param = new int[1];
-			param[0] = mQuality;
-		}
+		param = new int[1];
+		param[0] = mQuality;
 
 //		long sttime = SystemClock.uptimeMillis();
 		if (total < orglen) {
@@ -3372,9 +3297,6 @@ public class ImageManager extends InputStream implements Runnable {
 			}
 			ret = CallImgLibrary.ImageSetPage(page, orglen);
 			if (ret < 0) {
-				return null;
-			}
-			if (mFileList[page].type != IMAGETYPE_CCITT && mFileList[page].type != IMAGETYPE_FLATE) {
 				return null;
 			}
 
@@ -4195,18 +4117,6 @@ public class ImageManager extends InputStream implements Runnable {
 								break;
 							}
 							int readsize = mRarStream.read(buff, 0, buff.length);
-							if (readsize <= 0) {
-								break;
-							}
-							os.write(buff, 0, readsize);
-						}
-					}
-					else if (mFileType == FILETYPE_PDF) {
-						while (mRunningFlag == true) {
-							if (mCloseFlag) {
-								break;
-							}
-							int readsize = this.read(buff, 0, buff.length);
 							if (readsize <= 0) {
 								break;
 							}
