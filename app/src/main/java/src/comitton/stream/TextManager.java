@@ -11,6 +11,7 @@ import org.xmlpull.v1.XmlPullParser;
 import org.xmlpull.v1.XmlPullParserException;
 
 import src.comitton.common.DEF;
+import src.comitton.data.FileData;
 import src.comitton.data.MarkerDrawData;
 import src.comitton.data.TextDrawData;
 import src.comitton.pdf.data.PictureData;
@@ -5225,7 +5226,7 @@ public class TextManager {
 		try {
 			textpath = mImageMgr.getFilePath() + mTextPath;
 			// ビットマップの読み込み
-			if (mImageMgr.getFileType() == ImageManager.FILETYPE_DIR) {
+			if (mImageMgr.getFileType() == FileData.FILETYPE_DIR) {
 				BitmapFactory.Options option = new BitmapFactory.Options();
 				option.inJustDecodeBounds = true;
 				TextInputStream tis = new TextInputStream();

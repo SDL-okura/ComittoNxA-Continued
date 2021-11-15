@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 
 import src.comitton.common.DEF;
+import src.comitton.data.FileData;
 import src.comitton.data.MarkerDrawData;
 import src.comitton.data.TextDrawData;
 import src.comitton.pdf.data.PictureData;
@@ -984,7 +985,7 @@ public class MyTextView extends SurfaceView implements Handler.Callback, Surface
 			try {
 				// ビットマップの読み込み
 				if (mImageMgr != null) {
-					if (mImageMgr.getFileType() != ImageManager.FILETYPE_DIR) {
+					if (mImageMgr.getFileType() != FileData.FILETYPE_DIR) {
 						bm = mImageMgr.loadBitmapByName(filename);
 					}
 					else {

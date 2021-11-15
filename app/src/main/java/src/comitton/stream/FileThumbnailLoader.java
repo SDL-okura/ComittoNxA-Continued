@@ -270,7 +270,7 @@ public class FileThumbnailLoader extends ThumbnailLoader implements Runnable {
 		String filepath = mUri + mPath + filename;
 		String pathcode = DEF.makeCode(filepath, thum_cx, thum_cy);
 		Log.d("FileThumbnailLoader","index=" + index + " " + (firstloop ? 1 : 2) + "周目 loadBitmap Filename=" + file.getName() + ", pathcode=" + pathcode);
-		int filetype = file.getType();
+		//int filetype = file.getFileType();
 
 		if (filename.equals("..")) {
 			// 対象外のファイル

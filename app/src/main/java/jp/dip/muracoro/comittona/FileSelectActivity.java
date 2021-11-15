@@ -1215,7 +1215,7 @@ public class FileSelectActivity extends Activity implements OnTouchListener, Lis
 					if (mFileData != null) {
 						String user = mServer.getUser();
 						String pass = mServer.getPass();
-						if (mFileData.getType() != FileData.FILETYPE_DIR) {
+						if (mFileData.getFileType() != FileData.FILETYPE_DIR) {
 							// ファイル単体の場合はそのまま消す
 							Log.d("FileSelectActivity", "onCreateDialog ファイルを削除します。");
 							try {
@@ -1449,7 +1449,7 @@ public class FileSelectActivity extends Activity implements OnTouchListener, Lis
 
 				EditText edit = (EditText) inputView.findViewById(R.id.dialog_edittext);
 				String fromfile = mFileData.getName();
-				int filetype = mFileData.getType();
+				int filetype = mFileData.getFileType();
 				int index;
 				if (filetype == FileData.FILETYPE_PARENT) {
 					break;
@@ -1484,7 +1484,7 @@ public class FileSelectActivity extends Activity implements OnTouchListener, Lis
 							String pass = mServer.getPass();
 							String fromfile = mFileData.getName();
 							int index;
-							int filetype = mFileData.getType();
+							int filetype = mFileData.getFileType();
 							if (filetype != FileData.FILETYPE_DIR) {
 								// ファイルは拡張子を除去
 								index = fromfile.lastIndexOf('.');
@@ -2000,7 +2000,7 @@ public class FileSelectActivity extends Activity implements OnTouchListener, Lis
 			for (int i = 0; i < files.size(); i++) {
 				FileData data = files.get(i);
 				String name = data.getName();
-				int type = data.getType();
+				int type = data.getFileType();
 				if (type == FileData.FILETYPE_ARC || type == FileData.FILETYPE_TXT || type == FileData.FILETYPE_DIR) {
 					int state = sharedPreferences.getInt(FileAccess.createUrl(path + name, user, pass), -1);
 					data.setState(state);
@@ -2318,7 +2318,7 @@ public class FileSelectActivity extends Activity implements OnTouchListener, Lis
 
 
 		int i = 0;
-		if (mFileData.getType() == FileData.FILETYPE_IMG) {
+		if (mFileData.getFileType() == FileData.FILETYPE_IMG) {
 			if (mURI.equals("")) {
 				items = new String[2 + (delmenu ? 1 : 0) + (renmenu ? 1 : 0)];
 			}
@@ -2353,7 +2353,7 @@ public class FileSelectActivity extends Activity implements OnTouchListener, Lis
 		else {
 			int state = mFileData.getState();
 			int itemnum = 0;
-			if (mFileData.getType() != FileData.FILETYPE_DIR && mFileData.getType() != FileData.FILETYPE_TXT) {
+			if (mFileData.getFileType() != FileData.FILETYPE_DIR && mFileData.getFileType() != FileData.FILETYPE_TXT) {
 				itemnum++;
 			}
 			if (state != -1) {
@@ -2366,7 +2366,7 @@ public class FileSelectActivity extends Activity implements OnTouchListener, Lis
 				// 既読にする
 				itemnum++;
 			}
-			if (mFileData.getType() == FileData.FILETYPE_DIR) {
+			if (mFileData.getFileType() == FileData.FILETYPE_DIR) {
 				// フォルダを開く
 				itemnum++;
 				if (mURI.equals("") == false) {
@@ -2388,13 +2388,13 @@ public class FileSelectActivity extends Activity implements OnTouchListener, Lis
 				 // ディレクトリ削除あり
 				itemnum++;
 			}
-			if (mFileData.getType() != FileData.FILETYPE_TXT) {
+			if (mFileData.getFileType() != FileData.FILETYPE_TXT) {
 				// サムネイルキャッシュ削除
 				itemnum++;
 				// 親ディレクトリのサムネイルとして設定
 				itemnum++;
 			}
-			if (mFileData.getType() != FileData.FILETYPE_DIR && mFileData.getType() != FileData.FILETYPE_TXT) {
+			if (mFileData.getFileType() != FileData.FILETYPE_DIR && mFileData.getFileType() != FileData.FILETYPE_TXT) {
 				// 先頭ページを範囲選択してサムネイルに設定
 				itemnum++;
 			}
@@ -2402,7 +2402,7 @@ public class FileSelectActivity extends Activity implements OnTouchListener, Lis
 			// ここから設定
 			items = new String[itemnum];
 
-			if (mFileData.getType() != FileData.FILETYPE_DIR && mFileData.getType() != FileData.FILETYPE_TXT) {
+			if (mFileData.getFileType() != FileData.FILETYPE_DIR && mFileData.getFileType() != FileData.FILETYPE_TXT) {
 				if (mTapExpand) {
 					// zip/rar/pdfファイルを開く
 					items[i] = ope7;
@@ -2436,7 +2436,7 @@ public class FileSelectActivity extends Activity implements OnTouchListener, Lis
 				i++;
 			}
 
-			if (mFileData.getType() == FileData.FILETYPE_DIR) {
+			if (mFileData.getFileType() == FileData.FILETYPE_DIR) {
 				// フォルダを開く
 				items[i] = ope2;
 				mOperate[i] = OPERATE_OPEN;
@@ -2468,19 +2468,19 @@ public class FileSelectActivity extends Activity implements OnTouchListener, Lis
     			mOperate[i] = OPERATE_DEL;
     			i++;
 			}
-			if (mFileData.getType() != FileData.FILETYPE_DIR && mFileData.getType() != FileData.FILETYPE_TXT) {
+			if (mFileData.getFileType() != FileData.FILETYPE_DIR && mFileData.getFileType() != FileData.FILETYPE_TXT) {
 				// 先頭ページを範囲選択してサムネイルに設定
 				items[i] = ope101;
 				mOperate[i] = OPERATE_SETTHUMBCROPPED;
 				i++;
 			}
-			if (mFileData.getType() != FileData.FILETYPE_TXT) {
+			if (mFileData.getFileType() != FileData.FILETYPE_TXT) {
 				// 親ディレクトリのサムネイルに設定
 				items[i] = ope100;
 				mOperate[i] = OPERATE_SETTHUMBASDIR;
 				i++;
 			}
-			if (mFileData.getType() != FileData.FILETYPE_TXT) {
+			if (mFileData.getFileType() != FileData.FILETYPE_TXT) {
 				// サムネイルキャッシュ削除
 				items[i] = ope9;
 				mOperate[i] = OPERATE_DELCACHE;
@@ -2528,7 +2528,7 @@ public class FileSelectActivity extends Activity implements OnTouchListener, Lis
 						if (mOperate[item] == OPERATE_FIRST) {
 							// ファイルオープン
 							String name = mFileData.getName();
-							int type = mFileData.getType();
+							int type = mFileData.getFileType();
 							// サムネイル解放
 							releaseThumbnail();
 
@@ -2806,7 +2806,7 @@ public class FileSelectActivity extends Activity implements OnTouchListener, Lis
 						ArrayList<FileData> files = mFileList.getFileList();
 						for (int i = 0; i < files.size(); i++) {
 							FileData data = files.get(i);
-							if (data.getType() == FileData.FILETYPE_ARC || data.getType() == FileData.FILETYPE_TXT || data.getType() == FileData.FILETYPE_DIR) {
+							if (data.getFileType() == FileData.FILETYPE_ARC || data.getFileType() == FileData.FILETYPE_TXT || data.getFileType() == FileData.FILETYPE_DIR) {
 								// .zip又はディレクトリのしおり削除
 								String uri = FileAccess.createUrl(mURI + mPath + data.getName(), user, pass);
 								ed.remove(uri);
@@ -3155,7 +3155,7 @@ public class FileSelectActivity extends Activity implements OnTouchListener, Lis
 		}
 		else {
 			Toast.makeText(this, fd.getName(), Toast.LENGTH_SHORT).show();
-			switch (fd.getType()) {
+			switch (fd.getFileType()) {
 				case FileData.FILETYPE_DIR:
 					openImageDir(fd.getName());
 					break;
@@ -3444,7 +3444,7 @@ public class FileSelectActivity extends Activity implements OnTouchListener, Lis
 
 		ArrayList<FileData> sortfiles = new ArrayList<FileData>(files.size());
 		for (FileData fd : files) {
-			int type = fd.getType();
+			int type = fd.getFileType();
 			switch (type) {
 				case FileData.FILETYPE_DIR: // ディレクトリ
 				case FileData.FILETYPE_TXT: // テキスト
@@ -3488,8 +3488,8 @@ public class FileSelectActivity extends Activity implements OnTouchListener, Lis
 		public int compare(FileData file1, FileData file2) {
 
 			// ディレクトリ/ファイルタイプ
-			int type1 = file1.getType();
-			int type2 = file2.getType();
+			int type1 = file1.getFileType();
+			int type2 = file2.getFileType();
 
 			// IMAGEとZIPのソート優先度は同じにする
 			if (type1 == FileData.FILETYPE_IMG || type1 == FileData.FILETYPE_TXT) {
@@ -3602,7 +3602,7 @@ public class FileSelectActivity extends Activity implements OnTouchListener, Lis
 			ArrayList<FileData> files = mFileList.getFileList();
 			mFileData = files.get(position);
 
-			if (mFileData != null && mFileData.getType() != FileData.FILETYPE_PARENT) {
+			if (mFileData != null && mFileData.getFileType() != FileData.FILETYPE_PARENT) {
 				// ファイル長押し
 				showFileLongClickDialog();
 			}
@@ -3631,7 +3631,7 @@ public class FileSelectActivity extends Activity implements OnTouchListener, Lis
 					|| (mListMode == FileListArea.LISTMODE_LIST &&  point != null && point.x < mThumbSizeW * mListThumbSizeH / mThumbSizeH + mItemMargin)) )
 			{
 				mFileData = files.get(listpos);
-				if (mFileData != null && mFileData.getType() != FileData.FILETYPE_PARENT) {
+				if (mFileData != null && mFileData.getFileType() != FileData.FILETYPE_PARENT) {
 					// ファイル長押しメニュー
 					showFileLongClickDialog();
 				}
@@ -3640,7 +3640,7 @@ public class FileSelectActivity extends Activity implements OnTouchListener, Lis
 				if (files != null && 0 <= listpos && listpos < files.size()) {
 					FileData file = (FileData) files.get(listpos);
 					String name = file.getName();
-					int type = file.getType();
+					int type = file.getFileType();
 					if (type == FileData.FILETYPE_PARENT) {
 						// 親ディレクトリに移動
 						moveParentDir();

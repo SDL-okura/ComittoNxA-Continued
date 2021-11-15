@@ -158,7 +158,7 @@ public class FileSelectList implements Runnable, Callback, DialogInterface.OnDis
 					// 親フォルダを表示
 					FileData fileData = new FileData();
 					fileData.setName("..");
-					fileData.setType(FileData.FILETYPE_PARENT);
+					fileData.setFileType(FileData.FILETYPE_PARENT);
 					fileData.setState(0);
 					fileList.add(fileData);
 				}
@@ -171,7 +171,7 @@ public class FileSelectList implements Runnable, Callback, DialogInterface.OnDis
 					FileData fileData = new FileData();
 					fileData.setExtType(FileData.EXTTYPE_NONE);
 					fileData.setName(dir);
-					fileData.setType(FileData.FILETYPE_DIR);
+					fileData.setFileType(FileData.FILETYPE_DIR);
 					fileData.setState(-1);
 					fileList.add(fileData);
 				}
@@ -185,7 +185,7 @@ public class FileSelectList implements Runnable, Callback, DialogInterface.OnDis
 				// 親フォルダを表示
 				FileData fileData = new FileData();
 				fileData.setName("..");
-				fileData.setType(FileData.FILETYPE_PARENT);
+				fileData.setFileType(FileData.FILETYPE_PARENT);
 				fileData.setState(0);
 				fileList.add(0, fileData);
 			}
@@ -194,22 +194,22 @@ public class FileSelectList implements Runnable, Callback, DialogInterface.OnDis
 
 				name = fileList.get(i).getName();
 
-				if (fileList.get(i).getType() == FileData.FILETYPE_DIR
-						|| fileList.get(i).getType() == FileData.FILETYPE_ARC
-						|| fileList.get(i).getType() == FileData.FILETYPE_TXT) {
+				if (fileList.get(i).getFileType() == FileData.FILETYPE_DIR
+						|| fileList.get(i).getFileType() == FileData.FILETYPE_ARC
+						|| fileList.get(i).getFileType() == FileData.FILETYPE_TXT) {
 					state = mSp.getInt(FileAccess.createUrl(mUri + mPath + name, mUser, mPass), -1);
 					fileList.get(i).setState(state);
 				}
-				if (fileList.get(i).getType() == FileData.FILETYPE_IMG){
+				if (fileList.get(i).getFileType() == FileData.FILETYPE_IMG){
 					state = 0;
 					fileList.get(i).setState(state);
 				}
 
-				if (fileList.get(i).getType() == FileData.FILETYPE_NONE){
+				if (fileList.get(i).getFileType() == FileData.FILETYPE_NONE){
 					fileList.remove(i);
 					continue;
 				}
-				if (fileList.get(i).getType() != FileData.FILETYPE_DIR && fileList.get(i).getType() != FileData.FILETYPE_PARENT) {
+				if (fileList.get(i).getFileType() != FileData.FILETYPE_DIR && fileList.get(i).getFileType() != FileData.FILETYPE_PARENT) {
 					// 通常のファイル
 					int len = name.length();
 					if (len < 5) {
@@ -236,7 +236,7 @@ public class FileSelectList implements Runnable, Callback, DialogInterface.OnDis
 						}
 						//ディレクトリに適用する場合にリスト削除
 						if(!mApplyDir){
-							if(fileList.get(i).getType() == FileData.FILETYPE_DIR){
+							if(fileList.get(i).getFileType() == FileData.FILETYPE_DIR){
 								fileList.remove(i);
 								continue;
 							}
@@ -303,8 +303,8 @@ public class FileSelectList implements Runnable, Callback, DialogInterface.OnDis
 
 			int result;
 			// ディレクトリ/ファイルタイプ
-			int type1 = file1.getType();
-			int type2 = file2.getType();
+			int type1 = file1.getFileType();
+			int type2 = file2.getFileType();
 			if (type1 == FileData.FILETYPE_PARENT || type2 == FileData.FILETYPE_PARENT) {
 				return type1 - type2;
 			}
@@ -356,7 +356,7 @@ public class FileSelectList implements Runnable, Callback, DialogInterface.OnDis
 					if (mParentMove) {
     					FileData fileData = new FileData();
     					fileData.setName("..");
-    					fileData.setType(FileData.FILETYPE_PARENT);
+    					fileData.setFileType(FileData.FILETYPE_PARENT);
     					fileData.setState(0);
     					mFileList.add(fileData);
 					}

@@ -29,17 +29,20 @@ public class FileData {
 	public static final short EXTTYPE_TXT = 7;
 	public static final short EXTTYPE_EPUB = 50;
 
-	private String name = "";
-	private short filetype = FILETYPE_NONE;
-	private short exttype = EXTTYPE_NONE;
+	private String name;
+	private short filetype;
+	private short exttype;
 	private int state;
 	private long size;
 	private long date;
 	private boolean marker;
-	private boolean loadFileAsTextFlag = false;
+	private boolean loadFileAsTextFlag;
 
 	public FileData () {
-		;
+		name = "";
+		filetype = FILETYPE_NONE;
+		exttype = EXTTYPE_NONE;
+		loadFileAsTextFlag = true;
 	}
 
 	public String getName() {

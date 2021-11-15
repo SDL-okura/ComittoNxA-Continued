@@ -363,7 +363,7 @@ public class ExpandActivity extends ListActivity implements Handler.Callback, On
 		if (position < files.size()) {
 			FileData file = (FileData) files.get(position);
 			String name = file.getName();
-			int type = file.getType();
+			int type = file.getFileType();
 
 			freeListView();
 
@@ -485,7 +485,7 @@ public class ExpandActivity extends ListActivity implements Handler.Callback, On
 
 			int state = filedata.getState();
 			int itemnum;
-			if (filedata.getType() == FILETYPE_TXT) {
+			if (filedata.getFileType() == FILETYPE_TXT) {
 				// テキストファイル長押し
 				switch (state) {
 					case -1:
@@ -504,7 +504,7 @@ public class ExpandActivity extends ListActivity implements Handler.Callback, On
 			items = new CharSequence[itemnum];
 
 			int i = 0;
-			if (filedata.getType() == FILETYPE_TXT) {
+			if (filedata.getFileType() == FILETYPE_TXT) {
 				// テキストファイル長押し
 				if (state != -1) {
 					// 未読にする
@@ -556,7 +556,7 @@ public class ExpandActivity extends ListActivity implements Handler.Callback, On
 						case OPERATE_READHERE: { // ここまで読んだ
 							int state = 0;
 							for (int i = 0 ; i <= datapos ; i ++) {
-								if (mFileList.get(i).getType() != FILETYPE_TXT) {
+								if (mFileList.get(i).getFileType() != FILETYPE_TXT) {
 									state ++;
 								}
 							}
@@ -612,7 +612,7 @@ public class ExpandActivity extends ListActivity implements Handler.Callback, On
 				boolean thumbflag = false;
 
 				if (mThumbnail) {
-					if (item.getType() != FILETYPE_TXT) {
+					if (item.getFileType() != FILETYPE_TXT) {
 						thumbflag = true;
 					}
 				}
@@ -796,7 +796,7 @@ public class ExpandActivity extends ListActivity implements Handler.Callback, On
 
 			data.setName(files[i].name);
 			data.setSize(files[i].orglen);
-			data.setType(files[i].type);
+			data.setFileType(files[i].type);
 			data.setDate(files[i].dtime);
 			data.setState(state);
 			mFileList.add(data);
@@ -834,7 +834,7 @@ public class ExpandActivity extends ListActivity implements Handler.Callback, On
 			FileData data = files.get(i);
 
 			int state = -1;
-			if (data.getType() == FILETYPE_TXT) {
+			if (data.getFileType() == FILETYPE_TXT) {
 				state = mSharedPreferences.getInt(FileAccess.createUrl(mUri + mPath + mFileName + data.getName(), mUser, mPass), -1);
 			}
 			else {
@@ -850,7 +850,7 @@ public class ExpandActivity extends ListActivity implements Handler.Callback, On
 
 			data.setState(state);
 
-			if (data.getType() != FILETYPE_TXT) {
+			if (data.getFileType() != FILETYPE_TXT) {
 				imageCnt ++;
 			}
 		}
@@ -901,7 +901,7 @@ public class ExpandActivity extends ListActivity implements Handler.Callback, On
 		ArrayList<FileData> sortfiles = new ArrayList<FileData>(files.size());
 
 		for (FileData fd : files) {
-			int type = fd.getType();
+			int type = fd.getFileType();
 			switch (type) {
 				case FILETYPE_TXT: // テキスト
 					sortfiles.add(fd);

@@ -232,7 +232,7 @@ public class ExpandThumbnailLoader extends ThumbnailLoader implements Runnable {
 
 		// ファイル情報取得
 		FileData data = mFiles.get(index);
-		int filetype = data.getType();
+		int filetype = data.getFileType();
 		// 拡張子分の文字列長がない
 		if (filetype == FileData.FILETYPE_TXT || filetype == FileData.FILETYPE_PARENT) {
 			// 対象外のファイル

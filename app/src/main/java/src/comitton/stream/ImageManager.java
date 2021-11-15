@@ -104,23 +104,23 @@ public class ImageManager extends InputStream implements Runnable {
 //	public static final int OFFSET_RAR_SALT    = xx;	// 8bytes
 //	public static final int OFFSET_RAR_EXTTIME = xx;	// variable
 
-	public static final int FILETYPE_DIR = 1;
-	public static final int FILETYPE_ZIP = 2;
-	public static final int FILETYPE_RAR = 3;
-	public static final int FILETYPE_PDF = 4;
+//	public static final int FILETYPE_DIR = 1;
+//	public static final int FILETYPE_ZIP = 2;
+//	public static final int FILETYPE_RAR = 3;
+//	public static final int FILETYPE_PDF = 4;
 
 	public static final int FILETYPESUB_UNKNOWN = 0;
 	public static final int FILETYPESUB_NORMAL = 1;
 	public static final int FILETYPESUB_OLDVER = 2;
 
-	public static final int IMAGETYPE_JPEG = 1;
-	public static final int IMAGETYPE_PNG = 2;
-	public static final int IMAGETYPE_TXT = 3;
-	public static final int IMAGETYPE_CCITT = 4;
-	public static final int IMAGETYPE_FLATE = 5;
-	public static final int IMAGETYPE_GIF = 6;
-	public static final int IMAGETYPE_WEBP = 7;
-	public static final int IMAGETYPE_BMP = 8;
+//	public static final int IMAGETYPE_JPEG = 1;
+//	public static final int IMAGETYPE_PNG = 2;
+//	public static final int IMAGETYPE_TXT = 3;
+//	public static final int IMAGETYPE_CCITT = 4;
+//	public static final int IMAGETYPE_FLATE = 5;
+//	public static final int IMAGETYPE_GIF = 6;
+//	public static final int IMAGETYPE_WEBP = 7;
+//	public static final int IMAGETYPE_BMP = 8;
 
 	public static final int HOSTTYPE_LOCAL = 0;
 	public static final int HOSTTYPE_SAMBA = 1;

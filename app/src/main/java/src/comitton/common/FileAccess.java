@@ -690,8 +690,8 @@ public class FileAccess {
 		String name = "";
 		long size = 0;
 		long date = 0;
-		short type = 0;
-		short exttype = 0;
+		//short type = 0;
+		//short exttype = 0;
 
 		for (int i = 0; i < length; i++) {
 			if (isLocal) {
@@ -745,66 +745,16 @@ public class FileAccess {
 					date = smbjFiles.get(i).getLastWriteTime().toEpochMillis();
 				}
 			}
-			
+
 			if (flag) {
 				// ディレクトリの場合
 				int len = name.length();
 				if (len >= 1 && !name.substring(len - 1).equals("/")) {
 					name += "/";
 				}
-				type = FileData.FILETYPE_DIR;
-				exttype = FileData.EXTTYPE_NONE;
-			} else {
-				// 通常のファイル
-				int len = name.length();
-				if (len < 5) {
-					continue;
-				}
-				String ext = DEF.getFileExt(name);
-				if (ext.equals(".jpg") || ext.equals(".jpeg") || ext.equals(".png") || ext.equals(".gif") || ext.equals(".webp") || ext.equals(".bmp")) {
-					type = FileData.FILETYPE_IMG;
-					if (ext.equals(".jpg") || ext.equals(".jpeg")) {
-						exttype = FileData.EXTTYPE_JPG;
-					}
-					else if (ext.equals(".png")) {
-						exttype = FileData.EXTTYPE_PNG;
-					}
-					else if (ext.equals(".gif")) {
-						exttype = FileData.EXTTYPE_GIF;
-					}
-					else if (ext.equals(".webp")) {
-						exttype = FileData.EXTTYPE_WEBP;
-					}
-					else if (ext.equals(".bmp")) {
-						exttype = FileData.EXTTYPE_BMP;
-					}
-				}
-				else if (ext.equals(".zip") || ext.equals(".rar") || ext.equals(".cbz") || ext.equals(".cbr") || ext.equals(".pdf") || ext.equals(".epub")) {
-					type = FileData.FILETYPE_ARC;
-					if (ext.equals(".zip") || ext.equals(".cbz") || ext.equals(".epub")) {
-						exttype = FileData.EXTTYPE_ZIP;
-					}
-					else if (ext.equals(".rar") || ext.equals(".cbr")) {
-						exttype = FileData.EXTTYPE_RAR;
-					}
-					else {
-						exttype = FileData.EXTTYPE_PDF;
-					}
-				}
-				else if (ext.equals(".txt") || ext.equals(".xhtml") || ext.equals(".html")) {
-					type = FileData.FILETYPE_TXT;
-					exttype = FileData.EXTTYPE_TXT;
-				}
-				else {
-				type = FileData.FILETYPE_NONE;
-				exttype = FileData.EXTTYPE_NONE;
-				}
 			}
-
 			FileData fileData = new FileData();
-			fileData.setType(type);
-			fileData.setExtType(exttype);
-			fileData.setName(name);
+			fileData.setType(name);
 			fileData.setSize(size);
 			fileData.setDate(date);
 
@@ -821,10 +771,10 @@ public class FileAccess {
 
 		@Override
 		public int compare(FileData f1, FileData f2) {
-			if (f1.getType() != FileData.FILETYPE_DIR && f2.getType() == FileData.FILETYPE_DIR) {
+			if (f1.getFileType() != FileData.FILETYPE_DIR && f2.getFileType() == FileData.FILETYPE_DIR) {
 				return -1;
 			}
-			else if (f1.getType() == FileData.FILETYPE_DIR && f2.getType() != FileData.FILETYPE_DIR) {
+			else if (f1.getFileType() == FileData.FILETYPE_DIR && f2.getFileType() != FileData.FILETYPE_DIR) {
 				return 1;
 			}
 			else {
