@@ -79,7 +79,9 @@ import android.os.storage.StorageVolume;
 import android.preference.PreferenceManager;
 import android.provider.DocumentsContract;
 import android.provider.DocumentsContract.Document;
-import android.support.v4.provider.DocumentFile;
+//import android.support.v4.provider.DocumentFile;
+//import androidx.documentfile.provider.DocumentFile;
+import android.provider.Settings;
 import android.text.InputType;
 import android.util.Log;
 import android.view.KeyEvent;
@@ -107,8 +109,11 @@ import android.graphics.BitmapFactory;
 import android.graphics.Point;
 
 import android.Manifest;
-import android.support.v4.app.ActivityCompat;
-import android.support.v4.content.ContextCompat;
+//import android.support.v4.app.ActivityCompat;
+import androidx.activity.result.contract.ActivityResultContracts;
+import androidx.core.app.ActivityCompat;
+//import android.support.v4.content.ContextCompat;
+import androidx.core.content.ContextCompat;
 
 @SuppressLint("DefaultLocale")
 public class FileSelectActivity extends Activity implements OnTouchListener, ListNoticeListener, BookmarkListenerInterface, Handler.Callback {
@@ -243,6 +248,7 @@ public class FileSelectActivity extends Activity implements OnTouchListener, Lis
 	private StorageManager mStorageManager;
 
 	private static final int REQUEST_CODE = 1;
+	private static final int REQUEST_CODE_PERMISSION_FILEACCESS = 501;
 
 	/** Called when the activity is first created. */
 	@Override
@@ -291,9 +297,6 @@ public class FileSelectActivity extends Activity implements OnTouchListener, Lis
 		mSharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
 		readConfig();
 
-		// Intentを取得する
-		Intent intent = getIntent();
-
 		mHandler = new Handler(this);
 		if (mPathHistory == null) {
 			// パス遷移の記録
@@ -336,6 +339,8 @@ public class FileSelectActivity extends Activity implements OnTouchListener, Lis
 		mPath = "";
 		mURI = "";
 
+		// Intentを取得する
+		Intent intent = getIntent();
 		// Intentに保存されたデータを取り出す
 		String path;
 		String server;
@@ -368,12 +373,12 @@ public class FileSelectActivity extends Activity implements OnTouchListener, Lis
 		}
 		// サーバパス
 		if (serverSelect != -2) {
-			if (mServer.select(serverSelect) == true) {
+			if (mServer.select(serverSelect)) {
 				mURI = mServer.getURI();
 			}
 		}
 		else if (server != null && !"".equals(server)) {
-			if (mServer.select(server) == true) {
+			if (mServer.select(server)) {
 				mURI = mServer.getURI();
 			}
 			else {
@@ -440,21 +445,28 @@ public class FileSelectActivity extends Activity implements OnTouchListener, Lis
 			// 取得不可エラー
 		}
 
+		if(Build.VERSION.SDK_INT < Build.VERSION_CODES.R){
+			//==== パーミッション承認状態判定(書き込み) ====//
+			if (ContextCompat.checkSelfPermission(mActivity, Manifest.permission.READ_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED)
+			{
+				//==== 承認要求を行う ====//
+				ActivityCompat.requestPermissions(mActivity, new String[]{Manifest.permission.READ_EXTERNAL_STORAGE}, REQUEST_CODE_PERMISSION_FILEACCESS);
+			}
 
-		//==== パーミッション承認状態判定(書き込み) ====//
-		if (ContextCompat.checkSelfPermission(mActivity, Manifest.permission.READ_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED)
-		{
-			//==== 承認要求を行う ====//
-			ActivityCompat.requestPermissions(mActivity, new String[]{Manifest.permission.READ_EXTERNAL_STORAGE}, REQUEST_CODE);
+//			//==== パーミッション承認状態判定(マイク使用) ====//
+//			if (ContextCompat.checkSelfPermission(this, Manifest.permission.RECORD_AUDIO) != PackageManager.PERMISSION_GRANTED)
+//			{
+//				//==== 承認要求を行う ====//
+//				ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.RECORD_AUDIO}, REQUEST_CODE);
+//			}
 		}
-
-		//		//==== パーミッション承認状態判定(マイク使用) ====//
-//		if (ContextCompat.checkSelfPermission(this, Manifest.permission.RECORD_AUDIO) != PackageManager.PERMISSION_GRANTED)
-//		{
-//			//==== 承認要求を行う ====//
-//			ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.RECORD_AUDIO}, REQUEST_CODE);
-//		}
-
+		else{
+			//==== パーミッション承認状態判定(すべてのファイルの読み書き) ====//
+			if (!Environment.isExternalStorageManager()){
+				Intent intentGetPermission = new Intent(Settings.ACTION_MANAGE_APP_ALL_FILES_ACCESS_PERMISSION, Uri.parse("package:" + BuildConfig.APPLICATION_ID));
+				startActivityForResult(intentGetPermission, REQUEST_CODE_PERMISSION_FILEACCESS);
+			}
+		}
 
 		// 前回起動時のバージョン取得
 		String prevVerName = mSharedPreferences.getString("LastVer", null);
@@ -631,6 +643,11 @@ public class FileSelectActivity extends Activity implements OnTouchListener, Lis
 				setThumb(uri);
 			}
 			loadThumbnail();
+		}
+		else if(requestCode == REQUEST_CODE_PERMISSION_FILEACCESS){
+			//TODO : make codes :　ユーザが権限付与を拒否した時の処理コード
+			loadListView(0);
+			//loadThumbnail();
 		}
 		else {
 			// 履歴の内容を更新する

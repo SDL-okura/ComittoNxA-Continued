@@ -14,10 +14,6 @@ android {
 
     defaultConfig {
         applicationId "jp.dip.muracoro.comittona"
-        minSdk 29
-        targetSdk 30
-        versionCode 1
-        versionName "1.0"
         versionCode versionMajor * 1000000 + versionMinor * 10000 + versionPatch * 100 + versionPatch2
         versionName "${versionMajor}.${versionMinor}${revision}${versionPatch}${revision2}${versionPatch2}"
 
@@ -26,6 +22,8 @@ android {
             //abiFilters 'x86', 'x86_64', 'arm64-v8a'
             abiFilters 'x86', 'armeabi-v7a'
         }
+        minSdkVersion 28
+        targetSdkVersion 30
     }
 
     buildTypes {
@@ -44,6 +42,9 @@ android {
             path 'src/main/jni/Android.mk'
         }
     }
+    compileSdkVersion 30
+    buildToolsVersion '30.0.2'
+    ndkVersion '21.4.7075529'
 }
 
 dependencies {
