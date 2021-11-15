@@ -19,20 +19,24 @@ public class FileData {
 	public static final short EXTTYPE_ZIP = 1;
 	public static final short EXTTYPE_RAR = 2;
 	public static final short EXTTYPE_PDF = 3;
+
 	public static final short EXTTYPE_JPG = 4;
 	public static final short EXTTYPE_PNG = 5;
 	public static final short EXTTYPE_GIF = 6;
-	public static final short EXTTYPE_TXT = 7;
 	public static final short EXTTYPE_WEBP = 8;
 	public static final short EXTTYPE_BMP = 9;
 
-	private String name;
-	private short type;
-	private short exttype;
+	public static final short EXTTYPE_TXT = 7;
+	public static final short EXTTYPE_EPUB = 50;
+
+	private String name = "";
+	private short filetype = FILETYPE_NONE;
+	private short exttype = EXTTYPE_NONE;
 	private int state;
 	private long size;
 	private long date;
 	private boolean marker;
+	private boolean loadFileAsTextFlag = false;
 
 	public FileData () {
 		;
@@ -54,12 +58,12 @@ public class FileData {
 		this.state = state;
 	}
 
-	public short getType() {
-		return type;
+	public short getFileType() {
+		return filetype;
 	}
 
-	public void setType(short type) {
-		this.type = type;
+	public void setFileType(short type) {
+		filetype = type;
 	}
 
 	public short getExtType() {
@@ -88,10 +92,10 @@ public class FileData {
 			dateStr = "[----/--/-- --:--:--]";
 		}
 
-		if (type == FILETYPE_PARENT) { 
+		if (filetype == FILETYPE_PARENT) {
 			return "";  
 		}
-		else if (type == FILETYPE_DIR) {
+		else if (filetype == FILETYPE_DIR) {
 			return dateStr;  
 		}
 		else {
@@ -145,4 +149,73 @@ public class FileData {
 		return false;
 	}
 
+	public void setLoadFileAsTextFlag(boolean flag) {
+		loadFileAsTextFlag = flag;
+	}
+
+	public boolean getLoadFileAsTextFlag() {
+		return loadFileAsTextFlag;
+	}
+
+	public void setType(String filename) {
+		name = filename;
+		if (name == null){
+			return;
+		}
+		String ext = DEF.getFileExt(name);
+		if (name.substring(name.length() - 1).equals("/")) {
+			filetype = FILETYPE_DIR;
+		}
+		else if (name.length() <= 4 || DEF.checkHiddenFile(name)) {
+			//none
+		}
+		else if (ext.equals(".zip") || ext.equals(".cbz")) {
+			filetype = FILETYPE_ARC;
+			exttype = EXTTYPE_ZIP;
+//			mFileTypeSub = FILETYPESUB_UNKNOWN;
+		}
+		else if (ext.equals(".rar") || ext.equals(".cbr")) {
+			filetype = FILETYPE_ARC;
+			exttype = EXTTYPE_RAR;
+		}
+		else if (ext.equals(".pdf")){
+			//filetype = FILETYPE_ARC;
+			//exttype = EXTTYPE_PDF;
+		}
+		else if (ext.equals(".jpg") || ext.equals(".jpeg")) {
+			filetype = FILETYPE_IMG;
+			exttype = EXTTYPE_JPG;
+		}
+		else if (ext.equals(".png")) {
+			filetype = FILETYPE_IMG;
+			exttype = EXTTYPE_PNG;
+		}
+		else if (ext.equals(".gif")) {
+			filetype = FILETYPE_IMG;
+			exttype = EXTTYPE_GIF;
+		}
+		else if (ext.equals(".webp")) {
+			filetype = FILETYPE_IMG;
+			exttype = EXTTYPE_WEBP;
+		}
+		else if (ext.equals(".bmp")) {
+			filetype = FILETYPE_IMG;
+			exttype = EXTTYPE_BMP;
+		}
+		else if (loadFileAsTextFlag && (ext.equals(".txt") || ext.equals(".xhtml") || ext.equals(".html"))) {
+			filetype = FILETYPE_TXT;
+			exttype = EXTTYPE_TXT;
+		}
+		else if (ext.equals(".epub")) {
+			filetype = FILETYPE_ARC;
+			exttype = EXTTYPE_ZIP;
+			if (loadFileAsTextFlag){
+				//filetype = FILETYPE_TXT;
+				//exttype = EXTTYPE_EPUB;
+			}
+		}
+		else{
+			//none
+		}
+	}
 }

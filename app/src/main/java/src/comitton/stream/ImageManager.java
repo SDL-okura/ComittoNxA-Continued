@@ -125,6 +125,7 @@ public class ImageManager extends InputStream implements Runnable {
 	public static final int HOSTTYPE_LOCAL = 0;
 	public static final int HOSTTYPE_SAMBA = 1;
 	public static final int HOSTTYPE_WEBDAV = 2;
+	public static final int HOSTTYPE_NONE = 50;
 
 	public static final int FILESORT_NONE = 0;
 	public static final int FILESORT_NAME_UP = 1;
@@ -172,7 +173,8 @@ public class ImageManager extends InputStream implements Runnable {
 	private boolean mPseLand;
 
 	private int mHostType;
-	private int mFileType;
+	private short mFileType;
+	private short mExtType;
 //	private int mFileTypeSub;
 	private int mFileSort;
 	private int mOpenMode;
@@ -248,41 +250,41 @@ public class ImageManager extends InputStream implements Runnable {
 		mRarCharset = new String( "UTF-8" );
 	}
 
+	private int CheckHosttype(String filePath){
+		int hostType = HOSTTYPE_NONE;
+		if (filePath.length() >= 1 && filePath.substring(0, 1).equals("/")) {
+			// ローカルパス
+			hostType = HOSTTYPE_LOCAL;
+		}
+		else if (filePath.length() >= 6 && filePath.substring(0, 6).equals("smb://")) {
+			// サーバパス
+			hostType = HOSTTYPE_SAMBA;
+		}
+		else if (filePath.startsWith("http")) {
+			// WebDAVサーバパス
+			hostType = HOSTTYPE_WEBDAV;
+		}
+		return hostType;
+	}
+	
 	public void LoadImageList(int memsize, int memnext, int memprev) {
 		try {
-			if (mFilePath.length() >= 1 && mFilePath.substring(0, 1).equals("/")) {
-				// ローカルパス
-				mHostType = HOSTTYPE_LOCAL;
-			}
-			else if (mFilePath.length() >= 6 && mFilePath.substring(0, 6).equals("smb://")) {
-				// サーバパス
-				mHostType = HOSTTYPE_SAMBA;
-			}
-			else if (mFilePath.startsWith("http")) {
-				// WebDAVサーバパス
-				mHostType = HOSTTYPE_WEBDAV;
-			}
-			else {
+			mHostType = CheckHosttype(mFilePath);
+			if (mHostType == HOSTTYPE_NONE) {
 				throw new IOException("Illegal Path.");
 			}
 
-			String ext = DEF.getFileExt(mFilePath);
-			if (mFilePath.substring(mFilePath.length() - 1).equals("/")) {
-				mFileType = FILETYPE_DIR;
-			}
-			else if (ext.equals(".zip") || ext.equals(".cbz") || ext.equals(".epub")) {
-				mFileType = FILETYPE_ZIP;
-//				mFileTypeSub = FILETYPESUB_UNKNOWN;
-			}
-			else if (ext.equals(".rar") || ext.equals(".cbr")) {
-				mFileType = FILETYPE_RAR;
-			}
-			else {
+			FileData fileData = new FileData();
+			fileData.setLoadFileAsTextFlag((mOpenMode == OPENMODE_LIST || mOpenMode == OPENMODE_TEXTVIEW));
+			fileData.setType(mFilePath);
+			mFileType = fileData.getFileType();
+			if (mFileType == FileData.FILETYPE_NONE){
 				throw new IOException("Illegal Path.");
 			}
+			mExtType = fileData.getExtType();
 
 			try {
-				if (mFileType == FILETYPE_DIR) {
+				if (mFileType == FileData.FILETYPE_DIR) {
 //					dirAccessInit(mFilePath, mUser, mPass);
 					DirFileList(mFilePath, mUser, mPass);
 				}
@@ -333,11 +335,11 @@ public class ImageManager extends InputStream implements Runnable {
 		boolean rar5 = false;
 
 		// 簡易的なRAR5判定
-		if( mFileType == FILETYPE_RAR ){
+		if( mExtType == FileData.EXTTYPE_RAR ){
 			byte[] sigbuff = new byte[8];;
 			cmpDirectRead( sigbuff, 0, 8 );
 			if( sigbuff[0] == 0x52 && sigbuff[1] == 0x61 && sigbuff[2] == 0x72 && sigbuff[3] == 0x21 &&
-				sigbuff[4] == 0x1a && sigbuff[5] == 0x07 && sigbuff[6] == 0x01 && sigbuff[7] == 0x00 ){
+					sigbuff[4] == 0x1a && sigbuff[5] == 0x07 && sigbuff[6] == 0x01 && sigbuff[7] == 0x00 ){
 				rar5 = true;
 //				Log.d( "ComittoNxT", "RAR5 Hit." );
 				// シグネチャ以降にRAR5データがある
@@ -345,7 +347,7 @@ public class ImageManager extends InputStream implements Runnable {
 		}
 
 //		boolean first = true;
-		if (mFileType == FILETYPE_ZIP) {
+		if (mExtType == FileData.EXTTYPE_ZIP) {
 			// 圧縮されたファイル情報取得
 			headpos = zipSearchCentral();
 		}
@@ -375,7 +377,7 @@ public class ImageManager extends InputStream implements Runnable {
 				break;
 			}
 
-			if (mFileType == FILETYPE_ZIP) {
+			if (mExtType == FileData.EXTTYPE_ZIP) {
 //				if (mFileTypeSub != FILETYPESUB_OLDVER) {
 //					// 通常バージョンで読み込み
 				if (headpos == 0) {
@@ -405,7 +407,7 @@ public class ImageManager extends InputStream implements Runnable {
 						fl.sizefixed = false;
 				}
 			}
-			else if (mFileType == FILETYPE_RAR) {
+			else if (mExtType == FileData.EXTTYPE_RAR) {
 				// RAR読み込み
 				if( rar5 ){
 					// RAR5
@@ -424,46 +426,32 @@ public class ImageManager extends InputStream implements Runnable {
 
 			}
 			// 対象ファイル判定
-			if (fl.name != null && fl.name.length() > 4 && fl.orglen > 0 && fl.cmplen > 0) {
-				if (mHidden == false || !DEF.checkHiddenFile(fl.name)) {
-					String ext = DEF.getFileExt(fl.name);
-					if (ext.equals(".jpg") || ext.equals(".jpeg")) {
-						fl.type = 1;
-					}
-					else if (ext.equals(".png")) {
-						fl.type = 2;
-					}
-					else if (ext.equals(".gif")) {
-						fl.type = 6;
-					}
-					else if (ext.equals(".webp")) {
-						fl.type = 7;
-					}
-					else if (ext.equals(".bmp")) {
-						fl.type = 8;
-					}
-					else if ((ext.equals(".txt") || ext.equals(".xhtml") || ext.equals(".html")) && (mOpenMode == OPENMODE_LIST || mOpenMode == OPENMODE_TEXTVIEW)) {
-						fl.type = 3;
-					}
-					/* || ext.equals(".bmp") || ext.equals(".gif") ) { */
-					if (fl.type != 0) {
-						// リストへ登録
-						list.add(fl);
-						if (mFileType == FILETYPE_RAR) {
-							if (maxcmplen < fl.cmplen - fl.header) {
-								// 最大サイズを求める
-								maxcmplen = fl.cmplen - fl.header;
-							}
-						}
-						if (maxorglen < fl.orglen) {
+			if (fl.orglen > 0 && fl.cmplen > 0){
+				FileData fileData = new FileData();
+				fileData.setLoadFileAsTextFlag((mOpenMode == OPENMODE_LIST || mOpenMode == OPENMODE_TEXTVIEW));
+				fileData.setType(fl.name);
+				short fileType = fileData.getFileType();
+				if (fileType == FileData.FILETYPE_NONE){
+					throw new IOException("Illegal Path.");
+				}
+				fl.type = fileData.getExtType();
+				if (fl.type != FileData.EXTTYPE_NONE) {
+					// リストへ登録
+					list.add(fl);
+					if (mExtType == FileData.EXTTYPE_RAR) {
+						if (maxcmplen < fl.cmplen - fl.header) {
 							// 最大サイズを求める
-							maxorglen = fl.orglen;
+							maxcmplen = fl.cmplen - fl.header;
 						}
-						if (!(mFileType == FILETYPE_ZIP && headpos > 0) && mOpenMode == OPENMODE_THUMBNAIL && list.size() >= 5) {
-							// ソートなしのサムネイル取得時は先頭5ファイルから選択
-							// ZIPの場合は設定にかかわらずソート有り
-							break;
-						}
+					}
+					if (maxorglen < fl.orglen) {
+						// 最大サイズを求める
+						maxorglen = fl.orglen;
+					}
+					if (!(mExtType == FileData.EXTTYPE_ZIP && headpos > 0) && mOpenMode == OPENMODE_THUMBNAIL && list.size() >= 5) {
+						// ソートなしのサムネイル取得時は先頭5ファイルから選択
+						// ZIPの場合は設定にかかわらずソート有り
+						break;
 					}
 				}
 			}
@@ -471,7 +459,7 @@ public class ImageManager extends InputStream implements Runnable {
 			// 次のファイルへ
 			cmppos += fl.cmplen;
 			orgpos += fl.orglen;
-			if (mFileType == FILETYPE_ZIP && headpos > 0) {
+			if (mExtType == FileData.EXTTYPE_ZIP && headpos > 0) {
 				// 旧タイプのZIPの場合はセントラルヘッダをアクセス
 				headpos += fl.header;
 				cmpDirectSeek(headpos);
@@ -489,7 +477,7 @@ public class ImageManager extends InputStream implements Runnable {
 		sort(list);
 		mFileList = (FileListItem[]) list.toArray(new FileListItem[0]);
 		// RARであればメモリ確保n
-		if (mFileType == FILETYPE_RAR) {
+		if (mExtType == FileData.EXTTYPE_RAR) {
 			int ret = CallJniLibrary.rarAlloc(maxcmplen, maxorglen);
 			if (ret != 0) {
 				throw new IOException("Memory Alloc Error.");
@@ -1685,7 +1673,7 @@ public class ImageManager extends InputStream implements Runnable {
 							long pos;
 							int len;
 							mLoadingPage = page;
-							if (mFileType != FILETYPE_DIR) {
+							if (mFileType != FileData.FILETYPE_DIR) {
 								pos = mFileList[page].cmppos;
 								len = mFileList[page].cmplen;
 							}
@@ -1721,7 +1709,7 @@ public class ImageManager extends InputStream implements Runnable {
 					else {
 						// このページの読込サイズ
 						int lastsize;
-						if (!fMemCacheWrite && mFileType != FILETYPE_DIR) {
+						if (!fMemCacheWrite && mFileType != FileData.FILETYPE_DIR) {
 							lastsize = mFileList[page].cmplen;// + SIZE_CENTHEADER + SIZE_TERMHEADER;
 						}
 						else {
@@ -1732,7 +1720,7 @@ public class ImageManager extends InputStream implements Runnable {
 						mCheWriteFlag = true;
 						long pos;
 						int len;
-						if (mFileType != FILETYPE_DIR) {
+						if (mFileType != FileData.FILETYPE_DIR) {
 							pos = mFileList[page].cmppos;
 							len = mFileList[page].cmplen;
 						}
@@ -1930,7 +1918,7 @@ public class ImageManager extends InputStream implements Runnable {
 						mCheWriteFlag = true;
 						long pos;
 						int len;
-						if (mFileType != FILETYPE_DIR) {
+						if (mFileType != FileData.FILETYPE_DIR) {
 							pos = mFileList[page].cmppos;
 							len = mFileList[page].cmplen;// + SIZE_CENTHEADER + SIZE_TERMHEADER;
 						} else {
@@ -1961,7 +1949,7 @@ public class ImageManager extends InputStream implements Runnable {
 		// 読み込み位置を設定
 		long pos;
 		int len;
-		if (mFileType != FILETYPE_DIR) {
+		if (mFileType != FileData.FILETYPE_DIR) {
 			pos = mFileList[page].cmppos;
 			len = mFileList[page].cmplen;// + SIZE_CENTHEADER + SIZE_TERMHEADER;
 			mLoadingPage = page;
@@ -1989,7 +1977,7 @@ public class ImageManager extends InputStream implements Runnable {
 				from = FROMTYPE_LOCAL;
 			}
 			// 元ファイルの読込設定
-			if (mFileType == FILETYPE_DIR) {
+			if (mFileType == FileData.FILETYPE_DIR) {
 				dirSetPage(mFilePath + mFileList[page].name);
 				if (mHostType == HOSTTYPE_SAMBA)
 					cmpSeek(0, len);
@@ -2023,7 +2011,7 @@ public class ImageManager extends InputStream implements Runnable {
 //			// 同時キャッシュ保存モードで正常終了した場合
 //			cheSetCacheFlag(page);
 //		}
-		if (mFileType != FILETYPE_DIR) {
+		if (mFileType != FileData.FILETYPE_DIR) {
 			// mFile.endPage();
 		}
 		else {
@@ -2052,7 +2040,7 @@ public class ImageManager extends InputStream implements Runnable {
 			}
 			else {
 				// キャッシュに存在しない
-				if (mFileType == FILETYPE_DIR) {
+				if (mFileType == FileData.FILETYPE_DIR) {
 					ret = dirRead(buf, off, len);
 				}
 				else {
@@ -2238,7 +2226,7 @@ public class ImageManager extends InputStream implements Runnable {
 		if (size > 0) {
 			ret = mCheRndFile.read(buf, off, size);
 		}
-		if (mChePos == 0 && mFileType == FILETYPE_ZIP) {
+		if (mChePos == 0 && mExtType == FileData.EXTTYPE_ZIP) {
 			// SHIFT-JISで読込み
 			if (ret >= OFFSET_LCL_FNAME_LEN + 2) {
 				int lenFName = getShort(buf, OFFSET_LCL_FNAME_LEN);
@@ -2412,7 +2400,7 @@ public class ImageManager extends InputStream implements Runnable {
 		if (ret <= 0) {
 			return -1;
 		}
-		if (mCmpPos == 0 && mFileType == FILETYPE_ZIP) {
+		if (mCmpPos == 0 && mExtType == FileData.EXTTYPE_ZIP) {
 			// SHIFT-JISで読込み
 			if (ret >= OFFSET_LCL_FNAME_LEN + 2) {
 				int lenFName = getShort(buf, OFFSET_LCL_FNAME_LEN);
@@ -2486,7 +2474,7 @@ public class ImageManager extends InputStream implements Runnable {
 //			mWebDAVRnd.close();
 //			mWebDAVRnd = null;
 //		}
-		if (mFileType == FILETYPE_RAR) {
+		if (mExtType == FileData.EXTTYPE_RAR) {
 			// RARの領域解放
 			CallJniLibrary.rarClose();
 		}
@@ -2895,7 +2883,7 @@ public class ImageManager extends InputStream implements Runnable {
 			option.inJustDecodeBounds = true;
 			try {
 				setLoadBitmapStart(page, false);
-				if (mFileType == FILETYPE_ZIP) {
+				if (mExtType == FileData.EXTTYPE_ZIP) {
 					// メモリキャッシュ読込時のみZIP展開する
 					// ファイルキャッシュを作成するときはZIP展開不要
 					ZipInputStream zipStream = new ZipInputStream(new BufferedInputStream(this, BIS_BUFFSIZE));
@@ -2903,7 +2891,7 @@ public class ImageManager extends InputStream implements Runnable {
 					mLoadingPage = page;
 					BitmapFactory.decodeStream(new CacheInputStream(zipStream), null, option);
 				}
-				else if (mFileType == FILETYPE_RAR) {
+				else if (mExtType == FileData.EXTTYPE_RAR) {
 					// メモリキャッシュ読込時のみRAR展開する
 					// ファイルキャッシュを作成するときはRAR展開不要
 					mRarStream = new RarInputStream(new BufferedInputStream(this, BIS_BUFFSIZE), page, mFileList[page]);
@@ -2975,7 +2963,7 @@ public class ImageManager extends InputStream implements Runnable {
 		ZipInputStream zipStream = null;
 		try {
 			setLoadBitmapStart(page, notice);
-			if (mFileType == FILETYPE_ZIP) {
+			if (mExtType == FileData.EXTTYPE_ZIP) {
 				// メモリキャッシュ読込時のみZIP展開する
 				// ファイルキャッシュを作成するときはZIP展開不要
 				zipStream = new ZipInputStream(new BufferedInputStream(this, BIS_BUFFSIZE));
@@ -2984,7 +2972,7 @@ public class ImageManager extends InputStream implements Runnable {
 				// ファイル破損時に無限ループするのでコメント化
 				// zipStream.closeEntry();
 			}
-			else if (mFileType == FILETYPE_RAR) {
+			else if (mExtType == FileData.EXTTYPE_RAR) {
 				// メモリキャッシュ読込時のみRAR展開する
 				// ファイルキャッシュを作成するときはRAR展開不要
 				if (mRarStream == null || mRarStream.getLoadPage() != page) {
@@ -3045,7 +3033,7 @@ public class ImageManager extends InputStream implements Runnable {
 
 		try {
 			setLoadBitmapStart(page, false);
-			if (mFileType == FILETYPE_ZIP) {
+			if (mExtType == FileData.EXTTYPE_ZIP) {
 				// メモリキャッシュ読込時のみZIP展開する
 				// ファイルキャッシュを作成するときはZIP展開不要
 				ZipInputStream zipStream = new ZipInputStream(new BufferedInputStream(this, BIS_BUFFSIZE));
@@ -3054,7 +3042,7 @@ public class ImageManager extends InputStream implements Runnable {
 				cis.read(result, 0, result.length);
 //				zipStream.closeEntry();
 			}
-			else if (mFileType == FILETYPE_RAR) {
+			else if (mExtType == FileData.EXTTYPE_RAR) {
 				// メモリキャッシュ読込時のみRAR展開する
 				// ファイルキャッシュを作成するときはRAR展開不要
 				mRarStream = new RarInputStream(new BufferedInputStream(this, BIS_BUFFSIZE), page, mFileList[page]);
@@ -3134,7 +3122,7 @@ public class ImageManager extends InputStream implements Runnable {
 		ZipInputStream zipStream = null;
 		try {
 			setLoadBitmapStart(page, false);
-			if (mFileType == FILETYPE_ZIP) {
+			if (mExtType == FileData.EXTTYPE_ZIP) {
 				// メモリキャッシュ読込時のみZIP展開する
 				// ファイルキャッシュを作成するときはZIP展開不要
 				zipStream = new ZipInputStream(new BufferedInputStream(this, BIS_BUFFSIZE));
@@ -3143,7 +3131,7 @@ public class ImageManager extends InputStream implements Runnable {
 				// ファイル破損時に無限ループするのでコメント化
 				// zipStream.closeEntry();
 			}
-			else if (mFileType == FILETYPE_RAR) {
+			else if (mExtType == FileData.EXTTYPE_RAR) {
 				// メモリキャッシュ読込時のみRAR展開する
 				// ファイルキャッシュを作成するときはRAR展開不要
 				if (mRarStream == null || mRarStream.getLoadPage() != page) {
@@ -3195,7 +3183,7 @@ public class ImageManager extends InputStream implements Runnable {
 		ZipInputStream zipStream = null;
 		try {
 			setLoadBitmapStart(page, false);
-			if (mFileType == FILETYPE_ZIP) {
+			if (mExtType == FileData.EXTTYPE_ZIP) {
 				// メモリキャッシュ読込時のみZIP展開する
 				// ファイルキャッシュを作成するときはZIP展開不要
 				zipStream = new ZipInputStream(new BufferedInputStream(this, BIS_BUFFSIZE));
@@ -3204,7 +3192,7 @@ public class ImageManager extends InputStream implements Runnable {
 				// ファイル破損時に無限ループするのでコメント化
 				// zipStream.closeEntry();
 			}
-			else if (mFileType == FILETYPE_RAR) {
+			else if (mExtType == FileData.EXTTYPE_RAR) {
 				// メモリキャッシュ読込時のみRAR展開する
 				// ファイルキャッシュを作成するときはRAR展開不要
 				if (mRarStream == null || mRarStream.getLoadPage() != page) {
@@ -4082,7 +4070,7 @@ public class ImageManager extends InputStream implements Runnable {
 				try {
 					mCheWriteFlag = false;
 					setLoadBitmapStart(page, false);
-					if (mFileType == FILETYPE_ZIP) {
+					if (mExtType == FileData.EXTTYPE_ZIP) {
 						// メモリキャッシュ読込時のみZIP展開する
 						// ファイルキャッシュを作成するときはZIP展開不要
 						ZipInputStream zipStream = new ZipInputStream(new BufferedInputStream(this, BIS_BUFFSIZE));
@@ -4108,7 +4096,7 @@ public class ImageManager extends InputStream implements Runnable {
 							}
 						}
 					}
-					else if (mFileType == FILETYPE_RAR) {
+					else if (mExtType == FileData.EXTTYPE_RAR) {
 						// メモリキャッシュ読込時のみRAR展開する
 						// ファイルキャッシュを作成するときはRAR展開不要
 						mRarStream = new RarInputStream(new BufferedInputStream(this, BIS_BUFFSIZE), page, mFileList[page], mHandler);
