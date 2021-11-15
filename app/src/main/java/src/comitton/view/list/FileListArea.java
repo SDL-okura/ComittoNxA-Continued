@@ -521,7 +521,7 @@ public class FileListArea extends ListArea implements Handler.Callback {
 				canvas.drawRect(x, y + itemHeight - mh, x + mItemWidth, y + itemHeight, mFillPaint);
 			}
 
-			short type = fd.getType();
+			short type = fd.getFileType();
 			short exttype = fd.getExtType();
 
 			// 項目区切り
