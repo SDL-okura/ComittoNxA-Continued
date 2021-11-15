@@ -40,6 +40,19 @@
 #define SCALE_BORDER1	0.5
 #define SCALE_BORDER2	0.8
 
+//Image ext types are determined
+//See data\FileFata.java
+#define EXTTYPE_NONE 0
+#define EXTTYPE_JPEG 4
+#define EXTTYPE_PNG 5
+#define EXTTYPE_GIF 6
+#define EXTTYPE_WEBP 8
+#define EXTTYPE_BMP 9
+
+//old pdf image types
+#define EXTTYPE_CCITT 101
+#define EXTTYPE_FLATE 102
+
 typedef	unsigned short	WORD;
 typedef	unsigned char	BYTE;
 

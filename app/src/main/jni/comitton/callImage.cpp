@@ -317,75 +317,56 @@ JNIEXPORT jint JNICALL Java_src_comitton_stream_CallImgLibrary_ImageConvert (JNI
 	}
 
     if (setjmp(gJmpBuff) == 0) {
-		if (type == 4){
-#ifdef DEBUG
-			LOGD("ImageConvert : PDF-CCITT(%d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d)", p[0], p[1], p[2], p[3], p[4], p[5], p[6], p[7], p[8], p[9], p[10]);
-#endif
-			ret = LoadImageCCITT(&gImageData[gLoadPage], gLoadPage, scale, p[0], p[1], p[2], p[3], p[4], p[5], p[6], p[7], p[8], p[9], p[10], NULL, 0, 0);
-			if (ret == 0 && gLoadError) {
-				ret = -4;
-			}
+		if (gLoadBuffer[6] == 'J' && gLoadBuffer[7] == 'F' && gLoadBuffer[8] == 'I' && gLoadBuffer[9] == 'F') {
+//			LOGD("ImageConvert : Judge - JPEG");
+			type = EXTTYPE_JPEG;
 		}
-		else if (type == 5){
-#ifdef DEBUG
-			LOGD("ImageConvert : PDF-Flate(%d, %d, %d, %d)", p[0], p[1], p[2], p[3]);
-#endif
-			ret = LoadImageFlate(&gImageData[gLoadPage], gLoadPage, scale, p[0], p[1], p[2], p[3], NULL, 0, 0);
-			if (ret == 0 && gLoadError) {
-				ret = -4;
-			}
+		else if (gLoadBuffer[1] == 'P' && gLoadBuffer[2] == 'N' && gLoadBuffer[3] == 'G') {
+//			LOGD("ImageConvert : Judge - PNG");
+			type = EXTTYPE_PNG;
+		}
+		else if (gLoadBuffer[0] == 'G' && gLoadBuffer[1] == 'I' && gLoadBuffer[2] == 'F') {
+//			LOGD("ImageConvert : Judge - GIF");
+			type = EXTTYPE_GIF;
 		}
 		else {
-			if (gLoadBuffer[6] == 'J' && gLoadBuffer[7] == 'F' && gLoadBuffer[8] == 'I' && gLoadBuffer[9] == 'F') {
-//				LOGD("ImageConvert : Judge - JPEG");
-				type = 1;
-			}
-			else if (gLoadBuffer[1] == 'P' && gLoadBuffer[2] == 'N' && gLoadBuffer[3] == 'G') {
-//				LOGD("ImageConvert : Judge - PNG");
-				type = 2;
-			}
-			else if (gLoadBuffer[0] == 'G' && gLoadBuffer[1] == 'I' && gLoadBuffer[2] == 'F') {
-//				LOGD("ImageConvert : Judge - GIF");
-				type = 6;
-			}
-			else {
-//				LOGD("ImageConvert : Judge - ELSE(%d)", type);
-			}
+//			LOGD("ImageConvert : Judge - ELSE(%d)", type);
+		}
 
-			if (type == 1) {
+		if (type == EXTTYPE_JPEG) {
 #ifdef DEBUG
-				LOGD("ImageConvert : JPEG - quality=%d", p[0]);
+			LOGD("ImageConvert : JPEG - quality=%d", p[0]);
 #endif
-				ret = LoadImageJpeg(&gImageData[gLoadPage], gLoadPage, scale, p[0]);
-				if (ret == 0 && gLoadError) {
-					ret = -4;
-				}
-			}
-			else if (type == 2){
-				ret = LoadImagePng(&gImageData[gLoadPage], gLoadPage, scale);
-				if (ret == 0 && gLoadError) {
-					ret = -4;
-				}
-			}
-			else if (type == 6){
-				ret = LoadImageGif(&gImageData[gLoadPage], gLoadPage, scale);
-				if (ret == 0 && gLoadError) {
-					ret = -4;
-				}
-			}
-			else if (type == 7){
-				ret = LoadImageWebp(&gImageData[gLoadPage], gLoadPage, scale);
-				if (ret == 0 && gLoadError) {
-					ret = -4;
-				}
-			}
-			else if (type == 8){
-				ret = LoadImageBmp(&gImageData[gLoadPage], gLoadPage, scale);
-				if (ret == 0 && gLoadError) {
-					ret = -4;
-				}
+			ret = LoadImageJpeg(&gImageData[gLoadPage], gLoadPage, scale, p[0]);
+			if (ret == 0 && gLoadError) {
+				ret = -4;
 			}
 		}
+		else if (type == EXTTYPE_PNG){
+			ret = LoadImagePng(&gImageData[gLoadPage], gLoadPage, scale);
+			if (ret == 0 && gLoadError) {
+				ret = -4;
+			}
+		}
+		else if (type == EXTTYPE_GIF){
+			ret = LoadImageGif(&gImageData[gLoadPage], gLoadPage, scale);
+			if (ret == 0 && gLoadError) {
+				ret = -4;
+			}
+		}
+		else if (type == EXTTYPE_WEBP){
+			ret = LoadImageWebp(&gImageData[gLoadPage], gLoadPage, scale);
+			if (ret == 0 && gLoadError) {
+				ret = -4;
+			}
+		}
+		else if (type == EXTTYPE_BMP){
+			ret = LoadImageBmp(&gImageData[gLoadPage], gLoadPage, scale);
+			if (ret == 0 && gLoadError) {
+				ret = -4;
+			}
+		}
+
 	}
 	else {
 		ret = -1;
