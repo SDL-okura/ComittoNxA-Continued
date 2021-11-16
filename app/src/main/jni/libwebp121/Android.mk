@@ -187,3 +187,7 @@ endif
 LOCAL_MODULE := libwebp
 
 include $(BUILD_STATIC_LIBRARY)
+
+ifeq ($(USE_CPUFEATURES),yes)
+  $(call import-module,android/cpufeatures)
+endif
