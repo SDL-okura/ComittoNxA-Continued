@@ -430,11 +430,6 @@ public class ImageManager extends InputStream implements Runnable {
 				FileData fileData = new FileData();
 				fileData.setLoadFileAsTextFlag((mOpenMode == OPENMODE_LIST || mOpenMode == OPENMODE_TEXTVIEW));
 				fileData.setType(fl.name);
-				short fileType = fileData.getFileType();
-				if (fileType == FileData.FILETYPE_NONE){
-					//Log.d("%s は読み込まれませんでした", fl.name);
-					break;
-				}
 				fl.type = fileData.getExtType();
 				if (fl.type != FileData.EXTTYPE_NONE) {
 					// リストへ登録
@@ -455,8 +450,16 @@ public class ImageManager extends InputStream implements Runnable {
 						break;
 					}
 				}
+				else {
+					//Log.d("%s は読み込まれませんでした", fl.name);
+				}
 			}
 
+
+			if (fl.cmplen <= 0) {
+				//アーカイブファイルに読み込み不可のゼロバッファ列があり無限ループする場合に終了する
+				break;
+			}
 			// 次のファイルへ
 			cmppos += fl.cmplen;
 			orgpos += fl.orglen;
@@ -1006,7 +1009,12 @@ public class ImageManager extends InputStream implements Runnable {
 
 		if (skip) {
 			if (hsize + asize <= 5) {
-				throw new IOException("File is broken.");
+				if(hsize + asize != 0){
+					throw new IOException("File is broken.[ImageManager:rarFileListItem]");
+				}
+				else {
+					//ファイル末端にゼロバッファ列がある可能性あり
+				}
 			}
 			// ファイル情報ではない
 			FileListItem imgfile = new FileListItem();
@@ -3231,7 +3239,7 @@ public class ImageManager extends InputStream implements Runnable {
 		if (total < orglen) {
 			Log.e("ImageManager", "LoadBitmapFile total=" + total + ", orglen=" + orglen);
 			mFileList[page].error = true;
-			throw new IOException("File is broken.");
+			throw new IOException("File is broken.[ImageManager:LoadBitmapFile]");
 		}
 		else if (CallImgLibrary.ImageConvert(mFileList[page].type, mFileList[page].scale, param) >= 0) {
 			// 読み込み成功
