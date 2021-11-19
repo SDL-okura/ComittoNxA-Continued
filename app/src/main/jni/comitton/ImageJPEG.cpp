@@ -6,8 +6,11 @@
 #include <android/log.h>
 
 #include "Image.h"
+//#include "../libjpeg9d/jpeglib.h"
+//#include "../libjpeg9d/jerror.h"
 #include <jpeglib.h>
 #include <jerror.h>
+
 
 extern char			*gLoadBuffer;
 extern long			gLoadFileSize;
@@ -41,7 +44,7 @@ static void _JpegError(j_common_ptr in_info)
 	(*in_info->err->format_message)(in_info,pszMessage);
 
 	if (gCancel) {
-//		LOGD("JpegError : %s", pszMessage);
+		LOGD("JpegError : %s", pszMessage);
 	}
 	else {
 		LOGI("JpegError : %s", pszMessage);
@@ -130,15 +133,16 @@ int LoadImageJpeg(IMAGEDATA *pData, int page, int scale, int quality)
 		return -1;
 	}
 
+	LOGD("LoadImageJpeg : start");
 	jpeg_decompress_struct		in_info;
 	jpeg_error_mgr				jpeg_error;
 
 	JSAMPROW	buffer[1];
 
+    jpeg_create_decompress(&in_info);							//
 	in_info.err = jpeg_std_error(&jpeg_error);		//エラーハンドラ設定
 	jpeg_error.error_exit = _JpegError;					//エラーハンドラ設定
 
-	jpeg_create_decompress(&in_info);							//
 	jpeg_memory_src(&in_info, gLoadBuffer, gLoadFileSize);		//読込ファイル設定
 	jpeg_read_header(&in_info,TRUE);							//ヘッダー読込
 

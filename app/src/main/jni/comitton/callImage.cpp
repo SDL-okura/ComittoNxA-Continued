@@ -402,7 +402,7 @@ JNIEXPORT jint JNICALL Java_src_comitton_stream_CallImgLibrary_ImageConvertBitma
 #ifdef DEBUG
 	LOGD("ImageConvertBitmap : page=%d, filesize=%d, type=%d, scale=%d", (int)gLoadPage, (int)gLoadFilePos, type, scale);
 #endif
-	if (type != 4 && type != 5){
+	if (type != EXTTYPE_CCITT && type != EXTTYPE_FLATE){
 		return -1;
 	}
 
@@ -434,7 +434,7 @@ JNIEXPORT jint JNICALL Java_src_comitton_stream_CallImgLibrary_ImageConvertBitma
 	}
 
     if (setjmp(gJmpBuff) == 0) {
-		if (type == 4){
+		if (type == EXTTYPE_CCITT){
 #ifdef DEBUG
 			LOGD("ImageConvertBitmap : PDF-CCITT(%d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d)", p[0], p[1], p[2], p[3], p[4], p[5], p[6], p[7], p[8], p[9], p[10]);
 #endif
@@ -443,7 +443,7 @@ JNIEXPORT jint JNICALL Java_src_comitton_stream_CallImgLibrary_ImageConvertBitma
 				ret = -4;
 			}
 		}
-		else if (type == 5){
+		else if (type == EXTTYPE_FLATE){
 #ifdef DEBUG
 			LOGD("ImageConvertBitmap : PDF-Flate(%d, %d, %d, %d)", p[0], p[1], p[2], p[3]);
 #endif
